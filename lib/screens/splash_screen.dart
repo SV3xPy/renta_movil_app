@@ -9,7 +9,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SplashView(
       backgroundColor: Colors.black,
-      loadingIndicator: Image.asset('images/loading.gif'),
+      loadingIndicator: Image.asset('images/load.gif'),
       done: Done(const DashboardScreen(),
       animationDuration: const Duration(milliseconds: 3000)
       ),
