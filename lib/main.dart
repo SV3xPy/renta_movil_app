@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:renta_movil_app/screens/categoria_screen.dart';
+import 'package:renta_movil_app/screens/dashboard_screen.dart';
+import 'package:renta_movil_app/screens/rent_form.dart';
 import 'package:renta_movil_app/screens/splash_screen.dart';
+import 'package:renta_movil_app/screens/status_screen.dart';
 import 'package:renta_movil_app/services/theme_services.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 
@@ -21,11 +25,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'App_Mobiliario',
       theme: Themes.light,
       darkTheme: Themes.dark,
       themeMode: ThemeService().theme,
       home: const SplashScreen(),
+      routes: {
+        "/dash": (BuildContext context) => const DashboardScreen(),
+        "/rentForm": (BuildContext context) => const RentForm(),
+        "/status": (BuildContext context) => const StatusScreen(),
+        "/categoria": (BuildContext context) => const CategoriaScreen(),
+      },
     );
   }
 }

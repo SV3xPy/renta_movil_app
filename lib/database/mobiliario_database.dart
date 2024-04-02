@@ -89,7 +89,7 @@ class MobiliarioDatabase {
         where: 'idMobiliario=?', whereArgs: [data['idMobiliario']]);
   }
 
-  Future<int> eliminiarMobiliario(int id) async {
+  Future<int> eliminarMobiliario(int id) async {
     var conexion = await database;
     return conexion
         .delete('Mobiliario', where: 'idMobiliario=?', whereArgs: [id]);
@@ -115,7 +115,7 @@ class MobiliarioDatabase {
         where: 'idCategoria=?', whereArgs: [data['idCategoria']]);
   }
 
-  Future<int> eliminiarCategoria(int id) async {
+  Future<int> eliminarCategoria(int id) async {
     var conexion = await database;
     return conexion
         .delete('Categoria', where: 'idCategoria=?', whereArgs: [id]);
@@ -141,7 +141,7 @@ class MobiliarioDatabase {
         where: 'idStatus=?', whereArgs: [data['idStatus']]);
   }
 
-  Future<int> eliminiarStatus(int id) async {
+  Future<int> eliminarStatus(int id) async {
     var conexion = await database;
     return conexion.delete('Status', where: 'idStatus=?', whereArgs: [id]);
   }
@@ -164,7 +164,7 @@ class MobiliarioDatabase {
         where: 'idRenta=?', whereArgs: [data['idRenta']]);
   }
 
-  Future<int> eliminiarRenta(int id) async {
+  Future<int> eliminarRenta(int id) async {
     var conexion = await database;
     return conexion.delete('Renta', where: 'idRenta=?', whereArgs: [id]);
   }

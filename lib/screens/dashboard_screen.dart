@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:renta_movil_app/screens/rent_form.dart';
-import 'package:renta_movil_app/services/theme_services.dart';
+import 'package:renta_movil_app/screens/menu_lateral.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/add_rent_button.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -25,40 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: _appBar(),
       backgroundColor: context.theme.colorScheme.background,
-      drawer: Drawer(
-        child: Stack(
-          children: [
-            ListView(
-              children: [
-                DrawerHeader(
-                  child: Container(),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.book),
-                  title: Text('Rentas'),
-                  subtitle: Text('Gestión de rentas.'),
-                  trailing: Icon(Icons.chevron_right),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: GestureDetector(
-                onTap: () {
-                  ThemeService().switchTheme();
-                },
-                child: Icon(
-                  Get.isDarkMode
-                      ? Icons.brightness_high_rounded
-                      : Icons.nightlight_round,
-                  size: 30,
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
+      drawer: MenuLateral(context),
       body: Column(
         children: [
           _addRentBar(),
@@ -180,7 +146,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          AddRent(label: "Añadir Renta", onTap: () => Get.to(RentForm()))
+          //AddRent(label: "Añadir Renta", onTap: () => Get.to(RentForm())),
+          AddRent(
+              label: "Añadir Renta",
+              onTap: () => Navigator.pushNamed(context, "/rentForm")),
         ],
       ),
     );
