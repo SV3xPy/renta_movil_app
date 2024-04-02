@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:renta_movil_app/screens/dashboard_screen.dart';
 import 'package:splash_view/source/presentation/pages/pages.dart';
 import 'package:splash_view/source/presentation/widgets/done.dart';
+
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -11,8 +12,7 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       loadingIndicator: Image.asset('images/load.gif'),
       done: Done(const DashboardScreen(),
-      animationDuration: const Duration(milliseconds: 3000)
-      ),
+          animationDuration: const Duration(milliseconds: 3000)),
     );
   }
 }
