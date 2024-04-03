@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:renta_movil_app/database/mobiliario_database.dart';
 import 'package:renta_movil_app/models/mobiliario_model.dart';
 import 'package:art_sweetalert/art_sweetalert.dart';
@@ -6,6 +7,8 @@ import 'package:get/get.dart';
 import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/screens/menu_lateral.dart';
 import 'package:renta_movil_app/settings/theme.dart';
+import 'package:renta_movil_app/widgets/input_field.dart';
+import 'package:renta_movil_app/widgets/status_tile.dart';
 
 class StatusScreen extends StatefulWidget {
   const StatusScreen({super.key});
@@ -52,14 +55,34 @@ class _StatusScreenState extends State<StatusScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
-                  return Padding(
-                    padding: const EdgeInsets.all(10.00),
-                    child: ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return itemStatus(snapshot.data![index]);
-                      },
-                    ),
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    _showOptions(
+                                      context,
+                                      snapshot.data![index],
+                                    );
+                                  },
+                                  child: StatusTile(
+                                    status: snapshot.data![index],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 } else {
                   return const Center(child: CircularProgressIndicator());
@@ -72,82 +95,142 @@ class _StatusScreenState extends State<StatusScreen> {
     );
   }
 
-  Widget itemStatus(StatusModel status) {
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.secondary,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.black,
-          width: 2,
-        ),
-      ),
-      height: 80,
-      child: Column(
-        children: [
-          Text(status.nombreStatus!),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+  _showOptions(context, StatusModel status) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.only(top: 4),
+          height: MediaQuery.of(context).size.height *
+              0.42, //MediaQuery.of(context).size.height * 0.32,
+          width: MediaQuery.of(context).size.width,
+          color: Get.isDarkMode ? darkGreyClr : Colors.white,
+          child: Column(
             children: [
-              IconButton(
-                  onPressed: () {
-                    showModal(context, status);
-                  },
-                  icon: const Icon(Icons.edit)),
-              IconButton(
-                onPressed: () async {
+              Container(
+                height: 6,
+                width: 120,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color:
+                        Get.isDarkMode ? Colors.grey[600] : Colors.grey[300]),
+              ),
+              const Spacer(),
+              _bottomSheetButton(
+                label: "Actualizar",
+                onTap: () {
+                  showModal(context, status);
+                },
+                clr: primaryClr,
+                icon: const Icon(Icons.edit),
+              ),
+              _bottomSheetButton(
+                label: "Borrar",
+                onTap: () async {
                   ArtDialogResponse response = await ArtSweetAlert.show(
-                      barrierDismissible: false,
-                      context: context,
-                      artDialogArgs: ArtDialogArgs(
-                          denyButtonText: "Cancelar",
-                          title: "Estas seguro?",
-                          text: "Esto no se puede revertir",
-                          confirmButtonText: "Si, deseo borrar",
-                          type: ArtSweetAlertType.warning));
+                    barrierDismissible: false,
+                    context: context,
+                    artDialogArgs: ArtDialogArgs(
+                        denyButtonText: "Cancelar",
+                        title: "¿Estás seguro?",
+                        text: "Esta acción no se puede revertir",
+                        confirmButtonText: "Sí, deseo borrar",
+                        type: ArtSweetAlertType.warning),
+                  );
                   if (response.isTapConfirmButton) {
-                    mobiliarioDB!
-                        .eliminarStatus(status.idStatus!)
-                        .then((value) {
-                      if (value > 0) {
-                        ArtSweetAlert.show(
+                    mobiliarioDB!.eliminarStatus(status.idStatus!).then(
+                      (value) {
+                        Navigator.pop(context);
+                        if (value > 0) {
+                          ArtSweetAlert.show(
                             context: context,
                             artDialogArgs: ArtDialogArgs(
                                 type: ArtSweetAlertType.success,
-                                title: "Eliminado!"));
-                        AppValueNotifier.banStatus.value =
-                            !AppValueNotifier.banStatus.value;
-                      }
-                    });
+                                title: "¡Eliminado!"),
+                          );
+                          AppValueNotifier.banStatus.value =
+                              !AppValueNotifier.banStatus.value;
+                        }
+                      },
+                    );
                     return;
                   }
                 },
+                clr: Colors.red[300]!,
                 icon: const Icon(Icons.delete),
-              )
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              _bottomSheetButton(
+                label: "Cerrar",
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                isClose: true,
+                clr: Colors.red[300]!,
+              ),
+              const SizedBox(
+                height: 10,
+              ),
             ],
-          )
-        ],
+          ),
+        );
+      },
+    );
+  }
+
+  _bottomSheetButton({
+    required String label,
+    required Function()? onTap,
+    required Color clr,
+    Icon? icon,
+    bool isClose = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        height: 55,
+        width: MediaQuery.of(context).size.width * 0.9,
+        decoration: BoxDecoration(
+          border: Border.all(
+            width: 2,
+            color: isClose == true
+                ? Get.isDarkMode
+                    ? Colors.grey[600]!
+                    : Colors.grey[300]!
+                : clr,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          color: isClose == true ? Colors.transparent : clr,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) // Mostrar el icono si está presente
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: icon,
+              ),
+            Text(
+              label,
+              style: isClose
+                  ? titleStyle
+                  : titleStyle.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   showModal(context, StatusModel? status) {
-    final conNombreStatus = TextEditingController();
+    final nmbStatus = TextEditingController();
+
     if (status != null) {
-      conNombreStatus.text = status.nombreStatus!;
+      nmbStatus.text = status.nombreStatus!;
     }
-    final txtNombreStatus = TextFormField(
-      keyboardType: TextInputType.text,
-      controller: conNombreStatus,
-      decoration: InputDecoration(
-        labelText: 'Nombre',
-        border: const OutlineInputBorder(),
-        fillColor: Theme.of(context).colorScheme.surface,
-        filled: true,
-        hintText: 'Nombre del Status',
-      ),
-    );
     const space = SizedBox(
       height: 10,
     );
@@ -155,36 +238,57 @@ class _StatusScreenState extends State<StatusScreen> {
       onPressed: () {
         if (status == null) {
           mobiliarioDB!.insertarStatus(
-              {"nombreStatus": conNombreStatus.text}).then((value) {
-            Navigator.pop(context);
-            String msg = "";
-            if (value > 0) {
-              AppValueNotifier.banStatus.value =
-                  !AppValueNotifier.banStatus.value;
-              msg = "Status Insertado !";
-            } else {
-              msg = "Ocurrio un error :()";
-            }
-            var snackbar = SnackBar(content: Text(msg));
-            ScaffoldMessenger.of(context).showSnackBar(snackbar);
-          });
+            {
+              "nombreStatus": nmbStatus.text,
+            },
+          ).then(
+            (value) {
+              Navigator.pop(context);
+              String msg = "";
+              if (value > 0) {
+                AppValueNotifier.banStatus.value =
+                    !AppValueNotifier.banStatus.value;
+                msg = "¡Status Insertado!";
+              } else {
+                msg = "Ocurrio un error :()";
+              }
+              var snackbar = SnackBar(content: Text(msg));
+              ScaffoldMessenger.of(context).showSnackBar(snackbar);
+            },
+          );
         } else {
-          mobiliarioDB!.actualizarStatus({
-            "idStatus": status.idStatus,
-            "nombreStatus": conNombreStatus.text
-          }).then((value) {
-            Navigator.pop(context);
-            String msg = "";
-            if (value > 0) {
-              AppValueNotifier.banStatus.value =
-                  !AppValueNotifier.banStatus.value;
-              msg = "Status actualizado!";
-            } else {
-              msg = "Ocurrio un error :()";
-            }
-            var snackbar = SnackBar(content: Text(msg));
-            ScaffoldMessenger.of(context).showSnackBar(snackbar);
-          });
+          mobiliarioDB!.actualizarStatus(
+            {
+              "idStatus": status.idStatus,
+              "nombreStatus": nmbStatus.text,
+            },
+          ).then(
+            (value) {
+              Navigator.pop(context);
+              //String msg = "";
+              if (value > 0) {
+                AppValueNotifier.banStatus.value =
+                    !AppValueNotifier.banStatus.value;
+                ArtSweetAlert.show(
+                  context: context,
+                  artDialogArgs: ArtDialogArgs(
+                      type: ArtSweetAlertType.success,
+                      title: "¡Status Actualizado!"),
+                );
+                // msg = "Mobiliario actualizado!";
+              } else {
+                ArtSweetAlert.show(
+                  context: context,
+                  artDialogArgs: ArtDialogArgs(
+                      type: ArtSweetAlertType.warning,
+                      title: "Ocurrió un error."),
+                );
+                // msg = "Ocurrio un error :()";
+              }
+              // var snackbar = SnackBar(content: Text(msg));
+              // ScaffoldMessenger.of(context).showSnackBar(snackbar);
+            },
+          );
         }
       },
       icon: const Icon(Icons.save),
@@ -196,17 +300,25 @@ class _StatusScreenState extends State<StatusScreen> {
     );
 
     showModalBottomSheet(
-        context: context,
-        builder: (context) {
-          return ListView(
-            padding: const EdgeInsets.only(left: 20, right: 20,top: 20),
-            children: [
-              Text(
-                "Añadir Status",
-                style: headingStyle,
-              ),
-              txtNombreStatus, space, btnAgregar],
-          );
-        });
+      context: context,
+      builder: (context) {
+        return ListView(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+          children: [
+            Text(
+              "Añadir Status",
+              style: headingStyle,
+            ),
+            InputField(
+              title: "Nombre",
+              hint: "Nombre del status",
+              controller: nmbStatus,
+            ),
+            space,
+            btnAgregar
+          ],
+        );
+      },
+    );
   }
 }

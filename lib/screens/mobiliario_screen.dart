@@ -56,36 +56,34 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      _showOptions(
-                                        context,
-                                        snapshot.data![index],
-                                      );
-                                    },
-                                    child: MobiliarioTile(
-                                      mobiliario: snapshot.data![index],
-                                    ),
-                                  )
-                                ],
-                              ),
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    _showOptions(
+                                      context,
+                                      snapshot.data![index],
+                                    );
+                                  },
+                                  child: MobiliarioTile(
+                                    mobiliario: snapshot.data![index],
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   );
                   // return Padding(
                   //   padding: const EdgeInsets.all(10.00),
@@ -162,6 +160,7 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                         .eliminarMobiliario(mobiliario.idMobiliario!)
                         .then(
                       (value) {
+                        Navigator.pop(context);
                         if (value > 0) {
                           ArtSweetAlert.show(
                             context: context,

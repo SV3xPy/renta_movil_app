@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:renta_movil_app/database/mobiliario_database.dart';
+import 'package:renta_movil_app/models/mobiliario_model.dart';
+import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/add_rent_button.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
@@ -13,18 +16,36 @@ class RentForm extends StatefulWidget {
 }
 
 class _RentFormState extends State<RentForm> {
+  MobiliarioDatabase? mobiliarioDB;
   final TextEditingController _nmbController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _dirController = TextEditingController();
   final TextEditingController _telController = TextEditingController();
   final TextEditingController _montoController = TextEditingController();
+  final TextEditingController _fechaInicioController = TextEditingController();
+  final TextEditingController _fechaFinController = TextEditingController();
+  final TextEditingController _fechaEntregaController = TextEditingController();
+  final TextEditingController _statusController = TextEditingController();
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime(2099, 12, 31);
+  DateTime _deliverDate = DateTime(2099, 12, 31);
   int _selectedValue = 5;
   List<int> exampleValues = [5, 10, 15, 20];
-  String _selectedString = "Nada";
+  String? _selectedString = "-----";
+  int _selectedStatusID = -1;
   List<String> exampleString = ["Ejemplo1", "Ejemplo2", "Ejemplo3", "Ejemplo4"];
   //int _selectedColor = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    mobiliarioDB = MobiliarioDatabase();
+  }
+
+  Future<List<StatusModel>> _fetchStatuses() async {
+    final List<StatusModel> data = await mobiliarioDB!.consultarStatus();
+    return data;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +84,11 @@ class _RentFormState extends State<RentForm> {
                           color: Colors.grey,
                         ),
                         onPressed: () {
-                          _getDateFromUser(isStartDate: true);
+                          _getDateFromUser(
+                              isStartDate: true, isDeliverDate: false);
                         },
                       ),
+                      controller: _fechaInicioController,
                     ),
                   ),
                   const SizedBox(
@@ -81,25 +104,28 @@ class _RentFormState extends State<RentForm> {
                           color: Colors.grey,
                         ),
                         onPressed: () {
-                          _getDateFromUser(isStartDate: false);
+                          _getDateFromUser(
+                              isStartDate: false, isDeliverDate: false);
                         },
                       ),
+                      controller: _fechaFinController,
                     ),
                   ),
                 ],
               ),
               InputField(
                 title: "Fecha de Entrega",
-                hint: DateFormat.yMd().format(_startDate),
+                hint: DateFormat.yMd().format(_deliverDate),
                 widget: IconButton(
                   icon: const Icon(
                     Icons.calendar_today_outlined,
                     color: Colors.grey,
                   ),
                   onPressed: () {
-                    _getDateFromUser(isStartDate: true);
+                    _getDateFromUser(isStartDate: false, isDeliverDate: true);
                   },
                 ),
+                controller: _fechaEntregaController,
               ),
               InputField(
                 title: "Dirección",
@@ -118,68 +144,110 @@ class _RentFormState extends State<RentForm> {
                 keyboardType: TextInputType.number,
                 controller: _montoController,
               ),
+              // InputField(
+              //   //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
+              //   title: "Ejemplo Dropdown",
+              //   hint: "$_selectedValue Ejemplo",
+              //   widget: DropdownButton(
+              //     icon: const Icon(
+              //       Icons.keyboard_arrow_down,
+              //       color: Colors.grey,
+              //     ),
+              //     iconSize: 32,
+              //     style: subTitleStyle,
+              //     underline: Container(
+              //       height: 0,
+              //     ),
+              //     onChanged: (String? newValue) {
+              //       setState(() {
+              //         _selectedValue = int.parse(newValue!);
+              //       });
+              //     },
+              //     items: exampleValues.map<DropdownMenuItem<String>>(
+              //       (int value) {
+              //         return DropdownMenuItem<String>(
+              //           value: value.toString(),
+              //           child: Text(
+              //             value.toString(),
+              //           ),
+              //         );
+              //       },
+              //     ).toList(),
+              //   ),
+              // ),
+              // InputField(
+              //   //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
+              //   title: "Ejemplo Dropdown 2",
+              //   hint: "$_selectedString Ejemplo",
+              //   widget: DropdownButton(
+              //     icon: const Icon(
+              //       Icons.keyboard_arrow_down,
+              //       color: Colors.grey,
+              //     ),
+              //     iconSize: 32,
+              //     style: subTitleStyle,
+              //     underline: Container(
+              //       height: 0,
+              //     ),
+              //     onChanged: (String? newValue) {
+              //       setState(() {
+              //         _selectedString = newValue!;
+              //       });
+              //     },
+              //     items: exampleString.map<DropdownMenuItem<String>>(
+              //       (String? value) {
+              //         return DropdownMenuItem<String>(
+              //           value: value,
+              //           child: Text(
+              //             value!,
+              //             style: const TextStyle(color: Colors.grey),
+              //           ),
+              //         );
+              //       },
+              //     ).toList(),
+              //   ),
+              // ),
               InputField(
                 //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
-                title: "Ejemplo Dropdown",
-                hint: "$_selectedValue Ejemplo",
-                widget: DropdownButton(
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.grey,
-                  ),
-                  iconSize: 32,
-                  style: subTitleStyle,
-                  underline: Container(
-                    height: 0,
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedValue = int.parse(newValue!);
-                    });
-                  },
-                  items: exampleValues.map<DropdownMenuItem<String>>(
-                    (int value) {
-                      return DropdownMenuItem<String>(
-                        value: value.toString(),
-                        child: Text(
-                          value.toString(),
+                title: "Status",
+                hint: _selectedString!,
+                widget: FutureBuilder<List<StatusModel>>(
+                  future: _fetchStatuses(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return DropdownButton<StatusModel>(
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey,
                         ),
-                      );
-                    },
-                  ).toList(),
-                ),
-              ),
-              InputField(
-                //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
-                title: "Ejemplo Dropdown 2",
-                hint: "$_selectedString Ejemplo",
-                widget: DropdownButton(
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.grey,
-                  ),
-                  iconSize: 32,
-                  style: subTitleStyle,
-                  underline: Container(
-                    height: 0,
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedString = newValue!;
-                    });
-                  },
-                  items: exampleString.map<DropdownMenuItem<String>>(
-                    (String? value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value!,
-                          style: const TextStyle(color: Colors.grey),
+                        iconSize: 32,
+                        style: subTitleStyle,
+                        underline: Container(
+                          height: 0,
                         ),
+                        onChanged: (StatusModel? newValue) {
+                          setState(() {
+                            _selectedString = newValue!.nombreStatus;
+                            _selectedStatusID = newValue.idStatus!;
+                          });
+                        },
+                        items:
+                            snapshot.data!.map<DropdownMenuItem<StatusModel>>(
+                          (StatusModel value) {
+                            return DropdownMenuItem<StatusModel>(
+                              value: value,
+                              child: Text(value.nombreStatus!),
+                            );
+                          },
+                        ).toList(),
                       );
-                    },
-                  ).toList(),
+                    } else if (snapshot.hasError) {
+                      return Text("Error: ${snapshot.error}");
+                    }
+                    return const CircularProgressIndicator();
+                  },
                 ),
+                controller: _statusController,
               ),
               const SizedBox(
                 height: 18,
@@ -216,7 +284,8 @@ class _RentFormState extends State<RentForm> {
     );
   }
 
-  _getDateFromUser({required bool isStartDate}) async {
+  _getDateFromUser(
+      {required bool isStartDate, required bool isDeliverDate}) async {
     DateTime? _pickerDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -229,6 +298,8 @@ class _RentFormState extends State<RentForm> {
         if (isStartDate) {
           _startDate = _pickerDate;
           print(_startDate); //OJO:2024-03-31 00:00:00.000
+        } else if (isDeliverDate) {
+          _deliverDate = _pickerDate;
         } else {
           _endDate = _pickerDate;
         }
@@ -293,7 +364,35 @@ class _RentFormState extends State<RentForm> {
         _telController.text.isNotEmpty &&
         _montoController.text.isNotEmpty) {
       //Añadir a la base de datos
-      Get.back();
+      mobiliarioDB!.insertarRenta(
+        {
+          "fechaInicioRenta": DateFormat.yMd()
+              .format(_startDate), //_fechaInicioController.text,
+          "fechaFinRenta":
+              DateFormat.yMd().format(_endDate), //_fechaFinController.text,
+          "fechaEntregaRenta": DateFormat.yMd()
+              .format(_deliverDate), //_fechaEntregaController.text,
+          "nombreRenta": _nmbController.text,
+          "telefonoRenta": _telController.text,
+          "direccionRenta": _dirController.text,
+          "montoRenta": double.parse(_montoController.text),
+          "idStatus": _selectedStatusID
+        },
+      ).then(
+        (value) {
+          Navigator.pop(context);
+          String msg = "";
+          if (value > 0) {
+            AppValueNotifier.banRentas.value =
+                !AppValueNotifier.banRentas.value;
+            msg = "¡Renta Insertada!";
+          } else {
+            msg = "Ocurrio un error :()";
+          }
+          var snackbar = SnackBar(content: Text(msg));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        },
+      );
     } else if (_nmbController.text.isEmpty ||
         _descController.text.isEmpty ||
         _dirController.text.isEmpty ||

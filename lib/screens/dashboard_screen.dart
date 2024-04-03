@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:renta_movil_app/database/mobiliario_database.dart';
+import 'package:renta_movil_app/models/mobiliario_model.dart';
+import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/screens/menu_lateral.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/add_rent_button.dart';
+import 'package:renta_movil_app/widgets/renta_tile.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -18,6 +23,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  MobiliarioDatabase? mobiliarioDB;
+  @override
+  void initState() {
+    super.initState();
+    mobiliarioDB = MobiliarioDatabase();
+  }
+
   @override
   Widget build(BuildContext context) {
     print(Get.isDarkMode);
@@ -29,6 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           _addRentBar(),
           _addCalendar(),
+          _rentList(),
         ],
       ),
     );
@@ -152,6 +165,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: () => Navigator.pushNamed(context, "/rentForm")),
         ],
       ),
+    );
+  }
+
+  _rentList() {
+    return ValueListenableBuilder(
+      valueListenable: AppValueNotifier.banRentas,
+      builder: (context, value, _) {
+        return FutureBuilder(
+          future: mobiliarioDB!.consultarRenta(),
+          builder: (context, AsyncSnapshot<List<RentaModel>> snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text('Algo salio mal! :()'),
+              );
+            } else {
+              if (snapshot.hasData) {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    // _showOptions(
+                                    //   context,
+                                    //   snapshot.data![index],
+                                    // );
+                                  },
+                                  child: RentaTile(
+                                    renta: snapshot.data![index],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }
+          },
+        );
+      },
     );
   }
 
