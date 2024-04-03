@@ -57,8 +57,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
-                  return Expanded(
-                    child: ListView.builder(
+                    return ListView.builder(
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
                         return AnimationConfiguration.staggeredList(
@@ -87,8 +86,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
                           ),
                         );
                       },
-                    ),
-                  );
+                    );
                 } else {
                   return const Center(child: CircularProgressIndicator());
                 }

@@ -56,8 +56,7 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
-                  return Expanded(
-                    child: ListView.builder(
+                    return ListView.builder(
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
                         return AnimationConfiguration.staggeredList(
@@ -85,8 +84,8 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                           ),
                         );
                       },
-                    ),
-                  );
+                    );
+                  
                   // return Padding(
                   //   padding: const EdgeInsets.all(10.00),
                   //   child: ListView.builder(
