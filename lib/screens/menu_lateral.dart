@@ -38,7 +38,7 @@ Drawer MenuLateral(BuildContext context) {
                 ListTile(
                   leading: const Icon(Icons.list),
                   title: const Text('Administrar mobiliario'),
-                  onTap: () {},
+                  onTap: () => Navigator.pushNamed(context, "/mobiliario"),
                 ),
                 ListTile(
                   leading: const Icon(Icons.list),
