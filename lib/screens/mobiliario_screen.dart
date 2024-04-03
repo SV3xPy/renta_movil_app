@@ -56,36 +56,36 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      _showOptions(
-                                        context,
-                                        snapshot.data![index],
-                                      );
-                                    },
-                                    child: MobiliarioTile(
-                                      mobiliario: snapshot.data![index],
-                                    ),
-                                  )
-                                ],
-                              ),
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    _showOptions(
+                                      context,
+                                      snapshot.data![index],
+                                    );
+                                  },
+                                  child: MobiliarioTile(
+                                    mobiliario: snapshot.data![index],
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    );
-                  
+                        ),
+                      );
+                    },
+                  );
+
                   // return Padding(
                   //   padding: const EdgeInsets.all(10.00),
                   //   child: ListView.builder(
@@ -404,48 +404,61 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
     );
 
     showModalBottomSheet(
+      isScrollControlled:
+          true, // Esto es necesario para permitir el desplazamiento completo
       context: context,
-      builder: (context) {
-        return ListView(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
-          children: [
-            Text(
-              "Añadir Mobiliario",
-              style: headingStyle,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.66, // Ajusta este valor según tus necesidades
+        minChildSize: 0.66, // Ajusta este valor según tus necesidades
+        maxChildSize: 1, // Ajusta este valor según tus necesidades
+        builder: (BuildContext context, ScrollController scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+              child: Column(
+                children: [
+                  Text(
+                    "Añadir Mobiliario",
+                    style: headingStyle,
+                  ),
+                  InputField(
+                    title: "Nombre",
+                    hint: "Nombre del mobiliario",
+                    controller: nmbMobiliario,
+                  ),
+                  InputField(
+                    title: "Cantidad Total",
+                    hint: "Cantidad total del mobiliario",
+                    controller: cantTotalMobiliario,
+                    keyboardType: TextInputType.number,
+                  ),
+                  InputField(
+                    title: "Cantidad Disponible",
+                    hint: "Cantidad disponible del mobiliario",
+                    controller: cantDispMobiliario,
+                    keyboardType: TextInputType.number,
+                  ),
+                  InputField(
+                    title: "Descripción",
+                    hint: "Descripción del mobiliario",
+                    controller: descMobiliario,
+                  ),
+                  InputField(
+                    title: "Precio de renta",
+                    hint: "Precio de renta del mobiliario",
+                    controller: precioRentaMobiliario,
+                    keyboardType: TextInputType.number,
+                  ),
+                  space,
+                  btnAgregar
+                ],
+              ),
             ),
-            InputField(
-              title: "Nombre",
-              hint: "Nombre del mobiliario",
-              controller: nmbMobiliario,
-            ),
-            InputField(
-              title: "Cantidad Total",
-              hint: "Cantidad total del mobiliario",
-              controller: cantTotalMobiliario,
-              keyboardType: TextInputType.number,
-            ),
-            InputField(
-              title: "Cantidad Disponible",
-              hint: "Cantidad disponible del mobiliario",
-              controller: cantDispMobiliario,
-              keyboardType: TextInputType.number,
-            ),
-            InputField(
-              title: "Descripción",
-              hint: "Descripción del mobiliario",
-              controller: descMobiliario,
-            ),
-            InputField(
-              title: "Precio de renta",
-              hint: "Precio de renta del mobiliario",
-              controller: precioRentaMobiliario,
-              keyboardType: TextInputType.number,
-            ), //txtNombreCategoria,
-            space,
-            btnAgregar
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
