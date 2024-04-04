@@ -25,6 +25,8 @@ class _MobCatScreenState extends State<MobCatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    int? mobiliarioId = ModalRoute.of(context)?.settings.arguments as int?;
+    print(mobiliarioId);
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -48,45 +50,46 @@ class _MobCatScreenState extends State<MobCatScreen> {
         valueListenable: AppValueNotifier.banMobiliarios,
         builder: (context, value, _) {
           return FutureBuilder(
-            future: mobiliarioDB!.consultarMobiliarioCategoria(),
-            builder: (context,
-                AsyncSnapshot<List<MobiliarioCategoriaModel>> snapshot) {
+            future:
+                mobiliarioDB!.consultarMobilarioCategoriaPorID(mobiliarioId!),
+            builder: (context, AsyncSnapshot<List<CategoriaModel>> snapshot) {
               if (snapshot.hasError) {
                 return const Center(
                   child: Text('Algo salio mal! :()'),
                 );
               } else {
                 if (snapshot.hasData) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      _showOptions(
-                                        context,
-                                        snapshot.data![index],
-                                      );
-                                    },
-                                    // child: MobiliarioTile(
-                                    //   //Está en la carpeta Widgets, crear nuevo archivo y ajustarlo de acuerdo a la información que quieras mostrar.
-                                    //   mobiliario: snapshot.data![index],
-                                    // ),
-                                  )
-                                ],
-                              ),
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    _showOptions(
+                                      context,
+                                      snapshot.data![index],
+                                      mobiliarioId
+                                    );
+                                  },
+                                  // child: MobiliarioTile(
+                                  //   //Está en la carpeta Widgets, crear nuevo archivo y ajustarlo de acuerdo a la información que quieras mostrar.
+                                  //   mobiliario: snapshot.data![index],
+                                  // ),
+                                )
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    );
+                        ),
+                      );
+                    },
+                  );
                 } else {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -98,7 +101,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
     );
   }
 
-  _showOptions(context, MobiliarioCategoriaModel mobcat) {
+  _showOptions(context, CategoriaModel mobcat, int? mobId) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -122,7 +125,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
               _bottomSheetButton(
                 label: "Actualizar",
                 onTap: () {
-                  showModal(context, mobcat);
+                  showModal(context, mobcat,mobId);
                 },
                 clr: primaryClr,
                 icon: const Icon(Icons.edit),
@@ -227,13 +230,13 @@ class _MobCatScreenState extends State<MobCatScreen> {
     );
   }
 
-  showModal(context, MobiliarioCategoriaModel? mobcat) {
+  showModal(context, CategoriaModel? mobcat,int? mobId) {
     final idCatMobCat = TextEditingController();
     final idMobMobCat = TextEditingController();
 
     if (mobcat != null) {
       idCatMobCat.text = mobcat.idCategoria.toString();
-      idMobMobCat.text = mobcat.idMobiliario.toString();
+      idMobMobCat.text = mobId.toString();
     }
     const space = SizedBox(
       height: 10,

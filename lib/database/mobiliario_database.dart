@@ -217,6 +217,20 @@ class MobiliarioDatabase {
         .toList();
   }
 
+  Future<List<CategoriaModel>> consultarMobilarioCategoriaPorID(
+      int id) async {
+    var conexion = await database;
+    var mobCategorias = await conexion.rawQuery('''
+    SELECT MobiliarioCategoria.idCategoria, Categoria.nombreCategoria
+    FROM MobiliarioCategoria
+    INNER JOIN Categoria ON MobiliarioCategoria.idCategoria = Categoria.idCategoria
+    WHERE MobiliarioCategoria.idMobiliario = ?
+  ''', [id]);
+    return mobCategorias
+        .map((mobCategoria) => CategoriaModel.fromMap(mobCategoria))
+        .toList();
+  }
+
   Future<int> actualizarMobiliarioCategoria(
       Map<String, dynamic> data, Map<String, dynamic> nuevoData) async {
     int filasAfectadas = 0;
