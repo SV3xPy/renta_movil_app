@@ -36,12 +36,34 @@ class _RentFormState extends State<RentForm> {
   String? _selectedString = "-----";
   int _selectedStatusID = -1;
   List<String> exampleString = ["Ejemplo1", "Ejemplo2", "Ejemplo3", "Ejemplo4"];
+  bool _valuesInitialized = false;
   //int _selectedColor = 0;
 
   @override
   void initState() {
     super.initState();
     mobiliarioDB = MobiliarioDatabase();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_valuesInitialized) {
+      final renta = ModalRoute.of(context)!.settings.arguments as RentaModel?;
+      if (renta != null) {
+        _nmbController.text = renta.nombreRenta!;
+        _dirController.text = renta.direccionRenta!;
+        _telController.text = renta.telefonoRenta!;
+        _montoController.text = renta.montoRenta!.toString();
+        _fechaInicioController.text =
+            renta.fechaInicioRenta!; //DateFormat.yMd().format(_startDate);
+        print("EN DEPENDENCIES: ${_fechaInicioController.text}");
+        _fechaFinController.text = renta.fechaFinRenta!;
+        _fechaEntregaController.text = renta.fechaEntregaRenta!;
+        _selectedStatusID = renta.idStatus!;
+      }
+      _valuesInitialized = true;
+    }
   }
 
   Future<List<StatusModel>> _fetchStatuses() async {
@@ -52,18 +74,6 @@ class _RentFormState extends State<RentForm> {
   @override
   Widget build(BuildContext context) {
     final renta = ModalRoute.of(context)!.settings.arguments as RentaModel?;
-    if (renta != null) {
-      _nmbController.text = renta.nombreRenta!;
-      _dirController.text = renta.direccionRenta!;
-      _telController.text = renta.telefonoRenta!;
-      _montoController.text = renta.montoRenta!.toString();
-      _fechaInicioController.text =
-          renta.fechaInicioRenta!; //DateFormat.yMd().format(_startDate);
-      _fechaFinController.text = renta.fechaFinRenta!;
-      _fechaEntregaController.text = renta.fechaEntregaRenta!;
-      print("VALOR INICIAL: ${_fechaInicioController.text}");
-      _selectedStatusID = renta.idStatus!;
-    }
     return Scaffold(
       backgroundColor: context.theme.colorScheme.background,
       appBar: _appBar(context),
@@ -94,6 +104,7 @@ class _RentFormState extends State<RentForm> {
                           color: Colors.grey,
                         ),
                         onPressed: () {
+                          print("SE ACTUALIZÓ: ${_fechaInicioController.text}");
                           _getDateFromUser(
                               isStartDate: true,
                               isDeliverDate: false,

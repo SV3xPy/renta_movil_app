@@ -50,9 +50,9 @@ class MobiliarioDatabase {
         String queryRenta = '''CREATE TABLE Renta(
           idRenta INTEGER PRIMARY KEY,
           idStatus INTEGER,
-          fechaInicioRenta TEXT,
-          fechaFinRenta TEXT,
-          fechaEntregaRenta TEXT,
+          fechaInicioRenta VARCHAR(10),
+          fechaFinRenta VARCHAR(10),
+          fechaEntregaRenta VARCHAR(10),
           nombreRenta TEXT,
           telefonoRenta TEXT,
           direccionRenta TEXT,
