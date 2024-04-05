@@ -7,6 +7,7 @@ import 'package:renta_movil_app/models/mobiliario_model.dart';
 import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
+import 'package:renta_movil_app/widgets/mobiliario_categoria_title.dart';
 
 class MobCatScreen extends StatefulWidget {
   const MobCatScreen({super.key});
@@ -26,7 +27,6 @@ class _MobCatScreenState extends State<MobCatScreen> {
   @override
   Widget build(BuildContext context) {
     int? mobiliarioId = ModalRoute.of(context)?.settings.arguments as int?;
-    print(mobiliarioId);
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -39,7 +39,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              //showModal(context, null);
+              showModal(context, null, mobiliarioId);
             },
             icon: const Icon(Icons.add),
           )
@@ -72,16 +72,13 @@ class _MobCatScreenState extends State<MobCatScreen> {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    _showOptions(
-                                      context,
-                                      snapshot.data![index],
-                                      mobiliarioId
-                                    );
+                                    _showOptions(context, snapshot.data![index],
+                                        mobiliarioId);
                                   },
-                                  // child: MobiliarioTile(
-                                  //   //Está en la carpeta Widgets, crear nuevo archivo y ajustarlo de acuerdo a la información que quieras mostrar.
-                                  //   mobiliario: snapshot.data![index],
-                                  // ),
+                                  child: MobiliarioCategoriaTitle(
+                                    //Está en la carpeta Widgets, crear nuevo archivo y ajustarlo de acuerdo a la información que quieras mostrar.
+                                    categoria: snapshot.data![index],
+                                  ),
                                 )
                               ],
                             ),
@@ -102,6 +99,8 @@ class _MobCatScreenState extends State<MobCatScreen> {
   }
 
   _showOptions(context, CategoriaModel mobcat, int? mobId) {
+    print(int.parse(mobcat.idCategoria.toString()));
+    print(mobId);
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -125,7 +124,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
               _bottomSheetButton(
                 label: "Actualizar",
                 onTap: () {
-                  showModal(context, mobcat,mobId);
+                  showModal(context, mobcat, mobId);
                 },
                 clr: primaryClr,
                 icon: const Icon(Icons.edit),
@@ -143,23 +142,26 @@ class _MobCatScreenState extends State<MobCatScreen> {
                         confirmButtonText: "Sí, deseo borrar.",
                         type: ArtSweetAlertType.warning),
                   );
-                  // if (response.isTapConfirmButton) {
-                  //   mobiliarioDB!.eliminarMobiliarioCategoria().then(
-                  //     (value) {
-                  //       if (value > 0) {
-                  //         ArtSweetAlert.show(
-                  //           context: context,
-                  //           artDialogArgs: ArtDialogArgs(
-                  //               type: ArtSweetAlertType.success,
-                  //               title: "¡Eliminado!"),
-                  //         );
-                  //         AppValueNotifier.banMobiliarios.value =
-                  //             !AppValueNotifier.banMobiliarios.value;
-                  //       }
-                  //     },
-                  //   );
-                  //   return;
-                  // }
+                  if (response.isTapConfirmButton) {
+                    mobiliarioDB!.eliminarMobiliarioCategoria({
+                      "idMobiliario": mobId,
+                      "idCategoria": int.parse(mobcat.idCategoria.toString()),
+                    }).then(
+                      (value) {
+                        if (value > 0) {
+                          ArtSweetAlert.show(
+                            context: context,
+                            artDialogArgs: ArtDialogArgs(
+                                type: ArtSweetAlertType.success,
+                                title: "¡Eliminado!"),
+                          );
+                          AppValueNotifier.banMobiliarios.value =
+                              !AppValueNotifier.banMobiliarios.value;
+                        }
+                      },
+                    );
+                    return;
+                  }
                 },
                 clr: Colors.red[300]!,
                 icon: const Icon(Icons.delete),
@@ -230,72 +232,112 @@ class _MobCatScreenState extends State<MobCatScreen> {
     );
   }
 
-  showModal(context, CategoriaModel? mobcat,int? mobId) {
+  showModal(context, CategoriaModel? mobcat, int? mobId) async {
+    List<CategoriaModel> categorias = await mobiliarioDB!.consultarCategoria();
+    List<String> listadoCategorias =
+        categorias.map((categoria) => categoria.nombreCategoria!).toList();
+    //Para almacenar la categoria seleccionado del listado
+    int? selectedCategoriaId;
+    String _selectedString = "Nada";
     final idCatMobCat = TextEditingController();
-    final idMobMobCat = TextEditingController();
+    //final idMobMobCat = TextEditingController();
+    if (listadoCategorias.isNotEmpty) {
+      //Si vamos a insertar entonces que el default sea
+      //el primer elemento
+      _selectedString = listadoCategorias.first;
+      selectedCategoriaId = categorias.first.idCategoria;
+    }
 
     if (mobcat != null) {
       idCatMobCat.text = mobcat.idCategoria.toString();
-      idMobMobCat.text = mobId.toString();
+      //idMobMobCat.text = mobId.toString();
     }
     const space = SizedBox(
       height: 10,
     );
+
     final btnAgregar = ElevatedButton.icon(
       onPressed: () {
         if (mobcat == null) {
           mobiliarioDB!.insertarMobiliarioCategoria(
             {
-              "idMobiliario": int.parse(idCatMobCat.text),
-              "idCategoria": int.parse(idMobMobCat.text),
+              "idMobiliario": mobId,
+              "idCategoria": selectedCategoriaId,
             },
           ).then(
             (value) {
               Navigator.pop(context);
               String msg = "";
-              if (value > 0) {
-                AppValueNotifier.banMobiliarios.value =
-                    !AppValueNotifier.banMobiliarios.value;
-                msg = "Mobiliario Insertado!";
+              if (value != null && value is int) {
+                if (value > 0) {
+                  AppValueNotifier.banMobiliarios.value =
+                      !AppValueNotifier.banMobiliarios.value;
+                  msg = "Mobiliario Insertado!";
+                } else {
+                  msg = "Ocurrió un error :(";
+                }
               } else {
-                msg = "Ocurrio un error :()";
+                msg =
+                    "Ocurrió un error al procesar la respuesta de la base de datos.";
               }
               var snackbar = SnackBar(content: Text(msg));
               ScaffoldMessenger.of(context).showSnackBar(snackbar);
             },
-          );
+          ).catchError((error) {
+            Navigator.pop(context);
+            var snackbar = const SnackBar(
+                content:
+                    Text("Ocurrió un error al insertar en la base de datos."));
+            ScaffoldMessenger.of(context).showSnackBar(snackbar);
+          });
         } else {
-          mobiliarioDB!.actualizarMobiliario(
-            {
-              "idMobiliario": int.parse(idCatMobCat.text),
-              "idCategoria": int.parse(idMobMobCat.text),
-            },
-          ).then(
-            (value) {
-              Navigator.pop(context);
-              //String msg = "";
-              if (value > 0) {
-                AppValueNotifier.banMobiliarios.value =
-                    !AppValueNotifier.banMobiliarios.value;
-                ArtSweetAlert.show(
-                  context: context,
-                  artDialogArgs: ArtDialogArgs(
-                    type: ArtSweetAlertType.success,
-                    title: "¡Mobiliario Actualizado!",
-                  ),
-                );
-                // msg = "Mobiliario actualizado!";
-              } else {
-                ArtSweetAlert.show(
-                  context: context,
-                  artDialogArgs: ArtDialogArgs(
-                    type: ArtSweetAlertType.warning,
-                    title: "Ocurrió un error.",
-                  ),
-                );
-              }
-            },
-          );
+          if (int.parse(mobcat.idCategoria.toString()) == selectedCategoriaId) {
+            Navigator.pop(context);
+            Navigator.pop(context);
+            ArtSweetAlert.show(
+              context: context,
+              artDialogArgs: ArtDialogArgs(
+                type: ArtSweetAlertType.info,
+                title: "No es necesario actualizar, valores iguales.",
+              ),
+            );
+          } else {
+            mobiliarioDB!.actualizarMobiliarioCategoria({
+              //Primero los datos anteriores
+              "idMobiliario": mobId,
+              "idCategoria": int.parse(mobcat.idCategoria.toString()),
+            }, {
+              //Y lo valores nuevos
+              "idMobiliario": mobId,
+              "idCategoria": selectedCategoriaId
+            }).then(
+              (value) {
+                Navigator.pop(context);
+                Navigator.pop(context);
+                //String msg = "";
+                if (value > 0) {
+                  AppValueNotifier.banMobiliarios.value =
+                      !AppValueNotifier.banMobiliarios.value;
+                  ArtSweetAlert.show(
+                    context: context,
+                    artDialogArgs: ArtDialogArgs(
+                      type: ArtSweetAlertType.success,
+                      title: "¡Mobiliario Actualizado!",
+                    ),
+                  );
+                  // msg = "Mobiliario actualizado!";
+                } else {
+                  ArtSweetAlert.show(
+                    context: context,
+                    artDialogArgs: ArtDialogArgs(
+                      type: ArtSweetAlertType.warning,
+                      title: "Ocurrió un error.",
+                    ),
+                  );
+                }
+              },
+            );
+          }
         }
       },
       icon: const Icon(Icons.save),
@@ -307,32 +349,78 @@ class _MobCatScreenState extends State<MobCatScreen> {
     );
 
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (context) {
-        return ListView(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
-          children: [
-            Text(
-              "Añadir Mobiliario",
-              style: headingStyle,
-            ),
-            InputField(
-              title: "Mobiliario",
-              hint: "Mobiliario",
-              controller: idMobMobCat,
-              keyboardType: TextInputType.number,
-            ),
-            InputField(
-              title: "Categoria",
-              hint: "Categoría del mobiliario",
-              controller: idCatMobCat,
-              keyboardType: TextInputType.number,
-            ),
-            space,
-            btnAgregar
-          ],
-        );
-      },
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.66,
+        minChildSize: 0.66,
+        maxChildSize: 1,
+        builder: (BuildContext context, ScrollController scrollController) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Añadir Mobiliario",
+                        style: headingStyle,
+                      ),
+                      InputField(
+                        title: "Categoría",
+                        hint: _selectedString,
+                        widget: DropdownButton(
+                          value:
+                              _selectedString, // Valor seleccionado actualmente
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.grey,
+                          ),
+                          iconSize: 32,
+                          style: subTitleStyle,
+                          underline: Container(
+                            height: 0,
+                          ),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedString = newValue!;
+                              // Aquí puedes buscar el idCategoria correspondiente al nombre seleccionado
+                              // y actualizar selectedCategoriaId
+                              selectedCategoriaId = categorias
+                                  .firstWhere((categoria) =>
+                                      categoria.nombreCategoria == newValue)
+                                  .idCategoria;
+                              print(selectedCategoriaId);
+                              print(_selectedString);
+                            });
+                          },
+                          items:
+                              listadoCategorias.map<DropdownMenuItem<String>>(
+                            (String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              );
+                            },
+                          ).toList(),
+                        ),
+                      ),
+                      space,
+                      btnAgregar
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

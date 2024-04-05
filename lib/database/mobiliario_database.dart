@@ -91,6 +91,11 @@ class MobiliarioDatabase {
 
   Future<int> eliminarMobiliario(int id) async {
     var conexion = await database;
+    //Al eliminar un mobiliario ya que esta relacionado en n-n
+    //Antes de borrar necesitamos borrar sus relaciones en donde se encuentre.
+    conexion.delete('MobiliarioCategoria',
+        where: 'idMobiliario=?', whereArgs: [id]);
+    conexion.delete('RentaDetalle', where: 'idMobiliario=?', whereArgs: [id]);
     return conexion
         .delete('Mobiliario', where: 'idMobiliario=?', whereArgs: [id]);
   }
@@ -117,6 +122,10 @@ class MobiliarioDatabase {
 
   Future<int> eliminarCategoria(int id) async {
     var conexion = await database;
+    //Al eliminar una categoria ya que esta relacionado en n-n
+    //Antes de borrar necesitamos borrar sus relaciones en donde se encuentre.
+    conexion
+        .delete('MobiliarioCategoria', where: 'idCategoria=?', whereArgs: [id]);
     return conexion
         .delete('Categoria', where: 'idCategoria=?', whereArgs: [id]);
   }
@@ -166,6 +175,9 @@ class MobiliarioDatabase {
 
   Future<int> eliminarRenta(int id) async {
     var conexion = await database;
+    //Al eliminar un renta ya que esta relacionado en n-n
+    //Antes de borrar necesitamos borrar sus relaciones en donde se encuentre.
+    conexion.delete('RentaDetalle', where: 'idRenta=?', whereArgs: [id]);
     return conexion.delete('Renta', where: 'idRenta=?', whereArgs: [id]);
   }
 
@@ -217,8 +229,7 @@ class MobiliarioDatabase {
         .toList();
   }
 
-  Future<List<CategoriaModel>> consultarMobilarioCategoriaPorID(
-      int id) async {
+  Future<List<CategoriaModel>> consultarMobilarioCategoriaPorID(int id) async {
     var conexion = await database;
     var mobCategorias = await conexion.rawQuery('''
     SELECT MobiliarioCategoria.idCategoria, Categoria.nombreCategoria
