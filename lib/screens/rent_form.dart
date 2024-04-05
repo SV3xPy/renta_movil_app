@@ -1,3 +1,4 @@
+import 'package:art_sweetalert/art_sweetalert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +10,8 @@ import 'package:renta_movil_app/widgets/add_rent_button.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
 
 class RentForm extends StatefulWidget {
-  const RentForm({super.key});
+  final RentaModel? renta;
+  const RentForm({super.key, this.renta});
 
   @override
   State<RentForm> createState() => _RentFormState();
@@ -49,6 +51,19 @@ class _RentFormState extends State<RentForm> {
 
   @override
   Widget build(BuildContext context) {
+    final renta = ModalRoute.of(context)!.settings.arguments as RentaModel?;
+    if (renta != null) {
+      _nmbController.text = renta.nombreRenta!;
+      _dirController.text = renta.direccionRenta!;
+      _telController.text = renta.telefonoRenta!;
+      _montoController.text = renta.montoRenta!.toString();
+      _fechaInicioController.text =
+          renta.fechaInicioRenta!; //DateFormat.yMd().format(_startDate);
+      _fechaFinController.text = renta.fechaFinRenta!;
+      _fechaEntregaController.text = renta.fechaEntregaRenta!;
+      print("VALOR INICIAL: ${_fechaInicioController.text}");
+      _selectedStatusID = renta.idStatus!;
+    }
     return Scaffold(
       backgroundColor: context.theme.colorScheme.background,
       appBar: _appBar(context),
@@ -67,17 +82,12 @@ class _RentFormState extends State<RentForm> {
                 hint: "Nombre de la renta.",
                 controller: _nmbController,
               ),
-              InputField(
-                title: "Descripción",
-                hint: "Descripción de la renta.",
-                controller: _descController,
-              ),
               Row(
                 children: [
                   Expanded(
                     child: InputField(
                       title: "Fecha Inicio",
-                      hint: DateFormat.yMd().format(_startDate),
+                      hint: _fechaInicioController.text,
                       widget: IconButton(
                         icon: const Icon(
                           Icons.calendar_today_outlined,
@@ -85,7 +95,9 @@ class _RentFormState extends State<RentForm> {
                         ),
                         onPressed: () {
                           _getDateFromUser(
-                              isStartDate: true, isDeliverDate: false);
+                              isStartDate: true,
+                              isDeliverDate: false,
+                              context: context);
                         },
                       ),
                       controller: _fechaInicioController,
@@ -97,15 +109,18 @@ class _RentFormState extends State<RentForm> {
                   Expanded(
                     child: InputField(
                       title: "Fecha Fin",
-                      hint: DateFormat.yMd().format(_endDate),
+                      hint: _fechaFinController.text,
                       widget: IconButton(
                         icon: const Icon(
                           Icons.calendar_today_outlined,
                           color: Colors.grey,
                         ),
                         onPressed: () {
+                          print("SE ACTUALIZÓ: $_endDate");
                           _getDateFromUser(
-                              isStartDate: false, isDeliverDate: false);
+                              isStartDate: false,
+                              isDeliverDate: false,
+                              context: context);
                         },
                       ),
                       controller: _fechaFinController,
@@ -115,14 +130,19 @@ class _RentFormState extends State<RentForm> {
               ),
               InputField(
                 title: "Fecha de Entrega",
-                hint: DateFormat.yMd().format(_deliverDate),
+                hint: _fechaEntregaController
+                    .text, //DateFormat.yMd().format(_deliverDate),
                 widget: IconButton(
                   icon: const Icon(
                     Icons.calendar_today_outlined,
                     color: Colors.grey,
                   ),
                   onPressed: () {
-                    _getDateFromUser(isStartDate: false, isDeliverDate: true);
+                    print("SE ACTUALIZÓ: $_deliverDate");
+                    _getDateFromUser(
+                        isStartDate: false,
+                        isDeliverDate: true,
+                        context: context);
                   },
                 ),
                 controller: _fechaEntregaController,
@@ -144,69 +164,6 @@ class _RentFormState extends State<RentForm> {
                 keyboardType: TextInputType.number,
                 controller: _montoController,
               ),
-              // InputField(
-              //   //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
-              //   title: "Ejemplo Dropdown",
-              //   hint: "$_selectedValue Ejemplo",
-              //   widget: DropdownButton(
-              //     icon: const Icon(
-              //       Icons.keyboard_arrow_down,
-              //       color: Colors.grey,
-              //     ),
-              //     iconSize: 32,
-              //     style: subTitleStyle,
-              //     underline: Container(
-              //       height: 0,
-              //     ),
-              //     onChanged: (String? newValue) {
-              //       setState(() {
-              //         _selectedValue = int.parse(newValue!);
-              //       });
-              //     },
-              //     items: exampleValues.map<DropdownMenuItem<String>>(
-              //       (int value) {
-              //         return DropdownMenuItem<String>(
-              //           value: value.toString(),
-              //           child: Text(
-              //             value.toString(),
-              //           ),
-              //         );
-              //       },
-              //     ).toList(),
-              //   ),
-              // ),
-              // InputField(
-              //   //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
-              //   title: "Ejemplo Dropdown 2",
-              //   hint: "$_selectedString Ejemplo",
-              //   widget: DropdownButton(
-              //     icon: const Icon(
-              //       Icons.keyboard_arrow_down,
-              //       color: Colors.grey,
-              //     ),
-              //     iconSize: 32,
-              //     style: subTitleStyle,
-              //     underline: Container(
-              //       height: 0,
-              //     ),
-              //     onChanged: (String? newValue) {
-              //       setState(() {
-              //         _selectedString = newValue!;
-              //       });
-              //     },
-              //     items: exampleString.map<DropdownMenuItem<String>>(
-              //       (String? value) {
-              //         return DropdownMenuItem<String>(
-              //           value: value,
-              //           child: Text(
-              //             value!,
-              //             style: const TextStyle(color: Colors.grey),
-              //           ),
-              //         );
-              //       },
-              //     ).toList(),
-              //   ),
-              // ),
               InputField(
                 //Ejemplo, es para tener una guía por si en algún formulario se ocupan Dropdowns
                 title: "Status",
@@ -247,7 +204,6 @@ class _RentFormState extends State<RentForm> {
                     return const CircularProgressIndicator();
                   },
                 ),
-                controller: _statusController,
               ),
               const SizedBox(
                 height: 18,
@@ -258,7 +214,10 @@ class _RentFormState extends State<RentForm> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   //_colorPallete(),
-                  AddRent(label: "Añadir renta", onTap: () => _validateFields())
+                  AddRent(
+                    label: "Añadir renta",
+                    onTap: () => _validateFields(renta),
+                  )
                 ],
               ),
               const SizedBox(
@@ -284,24 +243,32 @@ class _RentFormState extends State<RentForm> {
     );
   }
 
-  _getDateFromUser(
-      {required bool isStartDate, required bool isDeliverDate}) async {
-    DateTime? _pickerDate = await showDatePicker(
+  _getDateFromUser({
+    required bool isStartDate,
+    required bool isDeliverDate,
+    required BuildContext context,
+  }) async {
+    DateTime? pickerDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2024),
       lastDate: DateTime(2099),
     );
 
-    if (_pickerDate != null) {
+    if (pickerDate != null) {
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickerDate);
       setState(() {
         if (isStartDate) {
-          _startDate = _pickerDate;
-          print(_startDate); //OJO:2024-03-31 00:00:00.000
+          //_startDate = pickerDate;
+          print("FECHA FORMATEADO: $formattedDate");
+          _fechaInicioController.text = formattedDate;
+          print("FECHA CONTROLADOR: ${_fechaInicioController.text}");
         } else if (isDeliverDate) {
-          _deliverDate = _pickerDate;
+          //_deliverDate = pickerDate;
+          _fechaEntregaController.text = formattedDate;
         } else {
-          _endDate = _pickerDate;
+          //_endDate = pickerDate;
+          _fechaFinController.text = formattedDate;
         }
       });
     } else {
@@ -309,95 +276,83 @@ class _RentFormState extends State<RentForm> {
     }
   }
 
-  // _colorPallete() {
-  //   //Si se quieren añadir colores, una tabla debe tener un campo int donde se almacene.
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Text(
-  //         "Colores",
-  //         style: titleStyle,
-  //       ),
-  //       const SizedBox(
-  //         height: 8,
-  //       ),
-  //       Wrap(
-  //         children: List<Widget>.generate(
-  //           3,
-  //           (int index) {
-  //             return GestureDetector(
-  //               onTap: () {
-  //                 setState(() {
-  //                   _selectedColor = index;
-  //                 });
-  //               },
-  //               child: Padding(
-  //                 padding: const EdgeInsets.only(right: 8.0),
-  //                 child: CircleAvatar(
-  //                   radius: 14,
-  //                   backgroundColor: index == 0
-  //                       ? primaryClr
-  //                       : index == 1
-  //                           ? pinkClr
-  //                           : yellowClr,
-  //                   child: _selectedColor == index
-  //                       ? const Icon(
-  //                           Icons.done,
-  //                           color: Colors.white,
-  //                           size: 16,
-  //                         )
-  //                       : Container(),
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //         ),
-  //       )
-  //     ],
-  //   );
-  // }
-
-  _validateFields() {
+  _validateFields(RentaModel? renta) {
     if (_nmbController.text.isNotEmpty &&
-        _descController.text.isNotEmpty &&
         _dirController.text.isNotEmpty &&
         _telController.text.isNotEmpty &&
-        _montoController.text.isNotEmpty) {
-      //Añadir a la base de datos
-      mobiliarioDB!.insertarRenta(
-        {
-          "fechaInicioRenta": DateFormat.yMd()
-              .format(_startDate), //_fechaInicioController.text,
-          "fechaFinRenta":
-              DateFormat.yMd().format(_endDate), //_fechaFinController.text,
-          "fechaEntregaRenta": DateFormat.yMd()
-              .format(_deliverDate), //_fechaEntregaController.text,
-          "nombreRenta": _nmbController.text,
-          "telefonoRenta": _telController.text,
-          "direccionRenta": _dirController.text,
-          "montoRenta": double.parse(_montoController.text),
-          "idStatus": _selectedStatusID
-        },
-      ).then(
-        (value) {
-          Navigator.pop(context);
-          String msg = "";
-          if (value > 0) {
-            AppValueNotifier.banRentas.value =
-                !AppValueNotifier.banRentas.value;
-            msg = "¡Renta Insertada!";
-          } else {
-            msg = "Ocurrio un error :()";
-          }
-          var snackbar = SnackBar(content: Text(msg));
-          ScaffoldMessenger.of(context).showSnackBar(snackbar);
-        },
-      );
+        _montoController.text.isNotEmpty &&
+        !_selectedStatusID.isNegative) {
+      if (renta == null) {
+        mobiliarioDB!.insertarRenta(
+          {
+            "fechaInicioRenta": _fechaInicioController
+                .text, //DateFormat.yMd().format(_startDate), //,
+            "fechaFinRenta": _fechaFinController.text,
+            "fechaEntregaRenta": _fechaEntregaController.text,
+            "nombreRenta": _nmbController.text,
+            "telefonoRenta": _telController.text,
+            "direccionRenta": _dirController.text,
+            "montoRenta": double.parse(_montoController.text),
+            "idStatus": _selectedStatusID
+          },
+        ).then(
+          (value) {
+            Navigator.pop(context);
+            String msg = "";
+            if (value > 0) {
+              AppValueNotifier.banRentas.value =
+                  !AppValueNotifier.banRentas.value;
+              msg = "¡Renta Insertada!";
+            } else {
+              msg = "Ocurrio un error :()";
+            }
+            var snackbar = SnackBar(content: Text(msg));
+            ScaffoldMessenger.of(context).showSnackBar(snackbar);
+          },
+        );
+      } else {
+        mobiliarioDB!.actualizarRenta(
+          {
+            "idRenta": renta.idRenta,
+            "fechaInicioRenta": _fechaInicioController
+                .text, //DateFormat.yMd().format(_startDate),
+            "fechaFinRenta": _fechaFinController.text,
+            "fechaEntregaRenta": _fechaEntregaController.text,
+            "nombreRenta": _nmbController.text,
+            "telefonoRenta": _telController.text,
+            "direccionRenta": _dirController.text,
+            "montoRenta": double.parse(_montoController.text),
+            "idStatus": _selectedStatusID
+          },
+        ).then(
+          (value) {
+            Navigator.pop(context);
+            //String msg = "";
+            if (value > 0) {
+              AppValueNotifier.banRentas.value =
+                  !AppValueNotifier.banRentas.value;
+              ArtSweetAlert.show(
+                context: context,
+                artDialogArgs: ArtDialogArgs(
+                    type: ArtSweetAlertType.success,
+                    title: "¡Renta Actualizada!"),
+              );
+            } else {
+              ArtSweetAlert.show(
+                context: context,
+                artDialogArgs: ArtDialogArgs(
+                    type: ArtSweetAlertType.warning,
+                    title: "Ocurrió un error."),
+              );
+            }
+          },
+        );
+      }
     } else if (_nmbController.text.isEmpty ||
-        _descController.text.isEmpty ||
         _dirController.text.isEmpty ||
         _telController.text.isEmpty ||
-        _montoController.text.isEmpty) {
+        _montoController.text.isEmpty ||
+        _selectedStatusID.isNegative) {
       Get.snackbar(
         "Requerido",
         "¡Todos los campos son obligatorios!",

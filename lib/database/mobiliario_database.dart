@@ -160,6 +160,7 @@ class MobiliarioDatabase {
 
   Future<int> actualizarRenta(Map<String, dynamic> data) async {
     var conexion = await database;
+    print("ESTO ES DATA: $data");
     return conexion.update('Renta', data,
         where: 'idRenta=?', whereArgs: [data['idRenta']]);
   }
