@@ -50,9 +50,9 @@ class MobiliarioDatabase {
         String queryRenta = '''CREATE TABLE Renta(
           idRenta INTEGER PRIMARY KEY,
           idStatus INTEGER,
-          fechaInicioRenta TEXT,
-          fechaFinRenta TEXT,
-          fechaEntregaRenta TEXT,
+          fechaInicioRenta VARCHAR(10),
+          fechaFinRenta VARCHAR(10),
+          fechaEntregaRenta VARCHAR(10),
           nombreRenta TEXT,
           telefonoRenta TEXT,
           direccionRenta TEXT,
@@ -169,6 +169,7 @@ class MobiliarioDatabase {
 
   Future<int> actualizarRenta(Map<String, dynamic> data) async {
     var conexion = await database;
+    print("ESTO ES DATA: $data");
     return conexion.update('Renta', data,
         where: 'idRenta=?', whereArgs: [data['idRenta']]);
   }

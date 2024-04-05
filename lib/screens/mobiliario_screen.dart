@@ -161,6 +161,7 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
                         .eliminarMobiliario(mobiliario.idMobiliario!)
                         .then(
                       (value) {
+                        Navigator.pop(context);
                         if (value > 0) {
                           ArtSweetAlert.show(
                             context: context,
