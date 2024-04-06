@@ -110,3 +110,24 @@ class RentaDetalleModel {
         precioUnitarioDetalle: rendetalle['precioUnitarioDetalle']);
   }
 }
+class RentaDetalleNombreModel{
+  int? idRenta;
+  int? idMobiliario;
+  String? nombreMobiliario;
+  int? cantidadDetalle;
+  double? precioUnitarioDetalle;
+  RentaDetalleNombreModel(
+      {this.idRenta,
+      this.idMobiliario,
+      this.nombreMobiliario,
+      this.cantidadDetalle,
+      this.precioUnitarioDetalle});
+  factory RentaDetalleNombreModel.fromMap(Map<String, dynamic> rendetalle) {
+    return RentaDetalleNombreModel(
+        idRenta: rendetalle['idRenta'],
+        idMobiliario: rendetalle['idMobiliario'],
+        nombreMobiliario: rendetalle['nombreMobiliario'],
+        cantidadDetalle: rendetalle['cantidadDetalle'],
+        precioUnitarioDetalle: rendetalle['precioUnitarioDetalle']);
+  }
+}

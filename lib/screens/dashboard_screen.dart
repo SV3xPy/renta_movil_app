@@ -454,6 +454,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const Spacer(),
               _bottomSheetButton(
+                label: "Administrar Detalles",
+                onTap: () {
+                  Navigator.pushNamed(context, "/rentaDetalle", arguments: {
+                    'id': renta.idRenta,
+                    'nombre': renta.nombreRenta
+                  });
+                },
+                clr: primaryClr,
+                icon: const Icon(Icons.edit),
+              ),
+              _bottomSheetButton(
                 label: "Actualizar",
                 onTap: () {
                   Navigator.pushNamed(
@@ -462,7 +473,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     arguments: renta,
                   );
                 },
-                clr: primaryClr,
+                clr: pinkClr,
                 icon: const Icon(Icons.edit),
               ),
               _bottomSheetButton(

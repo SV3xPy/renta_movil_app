@@ -7,6 +7,7 @@ import 'package:renta_movil_app/screens/dashboard_screen.dart';
 import 'package:renta_movil_app/screens/mobiliario_categoria_screen.dart';
 import 'package:renta_movil_app/screens/mobiliario_screen.dart';
 import 'package:renta_movil_app/screens/rent_form.dart';
+import 'package:renta_movil_app/screens/renta_detalle_screen.dart';
 import 'package:renta_movil_app/screens/splash_screen.dart';
 import 'package:renta_movil_app/screens/status_screen.dart';
 import 'package:renta_movil_app/services/theme_services.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         "/categoria": (BuildContext context) => const CategoriaScreen(),
         "/mobiliario": (BuildContext context) => const MobiliarioScreen(),
         "/mobiliarioCategoria": (BuildContext context) => const MobCatScreen(),
+        "/rentaDetalle": (BuildContext context) => const RenDetScreen(),
       },
     );
   }

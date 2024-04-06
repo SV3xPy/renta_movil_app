@@ -276,6 +276,23 @@ class MobiliarioDatabase {
         .map((renDetalle) => RentaDetalleModel.fromMap(renDetalle))
         .toList();
   }
+    Future<List<RentaDetalleNombreModel>> consultarRentaDetallePorID(int id) async {
+    var conexion = await database;
+    var renDetalles = await conexion.rawQuery('''
+    SELECT RentaDetalle.idMobiliario, Mobiliario.nombreMobiliario, RentaDetalle.cantidadDetalle,RentaDetalle.precioUnitarioDetalle 
+    FROM RentaDetalle
+    INNER JOIN Renta ON RentaDetalle.idRenta = Mobiliario.idMobiliario
+    WHERE RentaDetalle.idRenta = ?
+  ''', [id]);
+  //NECESITO HACER OTRO MODELO
+    return renDetalles
+        .map((renDetalle) => RentaDetalleNombreModel.fromMap(renDetalle))
+        .toList();
+  }
+  /*
+  cantidadDetalle INTEGER,
+          precioUnitarioDetalle REAL,
+  */
 
   Future<int> actualizaRentaDetalle(
       Map<String, dynamic> data, Map<String, dynamic> nuevoData) async {
