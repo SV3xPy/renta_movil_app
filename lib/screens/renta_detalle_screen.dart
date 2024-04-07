@@ -7,6 +7,7 @@ import 'package:renta_movil_app/models/mobiliario_model.dart';
 import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
+import 'package:flutter/services.dart';
 import 'package:renta_movil_app/widgets/renta_detalle_title.dart';
 
 class RenDetScreen extends StatefulWidget {
@@ -157,6 +158,7 @@ class _RenDetScreenState extends State<RenDetScreen> {
                     }).then(
                       (value) {
                         if (value > 0) {
+                          Navigator.pop(context);
                           ArtSweetAlert.show(
                             context: context,
                             artDialogArgs: ArtDialogArgs(
@@ -247,21 +249,29 @@ class _RenDetScreenState extends State<RenDetScreen> {
     List<double> listadoPreciosMobiliarios = mobiliarios
         .map((mobiliario) => mobiliario.precioRentaMobiliario!)
         .toList();
-    int? selectedMobiliarioId;
-    double? selectedPrecio;
+    List<int> listadoDisponibilidadMobiliarios = mobiliarios
+        .map((mobiliario) => mobiliario.cantidadDisponibleMobiliario!)
+        .toList();
+    int? _selectedMobiliarioId;
+    double? _selectedPrecio;
+    int? _selectedCantidad;
+    int? _selectedMaxCantidad;
     String _selectedString = "Nada";
+
     final idRenDetMob = TextEditingController();
     final cantidadDetalle = TextEditingController();
     final precioUnitarioDetalle = TextEditingController();
     if (listadoMobiliarios.isNotEmpty) {
       _selectedString = listadoMobiliarios.first;
-      selectedMobiliarioId = mobiliarios.first.idMobiliario;
-      selectedPrecio = mobiliarios.first.precioRentaMobiliario;
+      _selectedMobiliarioId = mobiliarios.first.idMobiliario;
+      _selectedPrecio = mobiliarios.first.precioRentaMobiliario;
+      _selectedMaxCantidad = listadoDisponibilidadMobiliarios.first;
     }
     if (detalles != null) {
       idRenDetMob.text = detalles.idMobiliario.toString();
       cantidadDetalle.text = detalles.cantidadDetalle.toString();
       precioUnitarioDetalle.text = detalles.precioUnitarioDetalle.toString();
+      cantidadDetalle.text = detalles.cantidadDetalle.toString();
     }
     const space = SizedBox(
       height: 10,
@@ -272,9 +282,9 @@ class _RenDetScreenState extends State<RenDetScreen> {
           mobiliarioDB!.insertarRentaDetalle(
             {
               "idRenta": renId,
-              "idMobiliario": selectedMobiliarioId,
-              "cantidadDetalle": cantidadDetalle.text,
-              "precioUnitarioDetalle": precioUnitarioDetalle.text
+              "idMobiliario": _selectedMobiliarioId,
+              "cantidadDetalle": int.parse(cantidadDetalle.text),
+              "precioUnitarioDetalle": double.parse(precioUnitarioDetalle.text)
             },
           ).then(
             (value) {
@@ -306,7 +316,7 @@ class _RenDetScreenState extends State<RenDetScreen> {
           );
         } else {
           if (int.parse(detalles.idMobiliario.toString()) ==
-                  selectedMobiliarioId &&
+                  _selectedMobiliarioId &&
               int.parse(detalles.cantidadDetalle.toString()) ==
                   int.parse(cantidadDetalle.text)) {
             Navigator.pop(context);
@@ -319,7 +329,15 @@ class _RenDetScreenState extends State<RenDetScreen> {
               ),
             );
           } else {
-            mobiliarioDB!.actualizaRentaDetalle({}, {}).then(
+            mobiliarioDB!.actualizaRentaDetalle({
+              "idRenta": renId,
+              "idMobiliario": int.parse(detalles.idMobiliario.toString())
+            }, {
+              "idRenta": renId,
+              "idMobiliario": _selectedMobiliarioId,
+              "cantidadDetalle": int.parse(cantidadDetalle.text),
+              "precioUnitarioDetalle": double.parse(precioUnitarioDetalle.text),
+            }).then(
               (value) {
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -391,10 +409,17 @@ class _RenDetScreenState extends State<RenDetScreen> {
                           onChanged: (String? newValue) {
                             setState(() {
                               _selectedString = newValue!;
-                              selectedMobiliarioId = mobiliarios
+                              _selectedMobiliarioId = mobiliarios
                                   .firstWhere((mobiliario) =>
                                       mobiliario.nombreMobiliario == newValue)
                                   .idMobiliario;
+                              _selectedPrecio = listadoPreciosMobiliarios[
+                                  listadoMobiliarios.indexOf(newValue)];
+                              precioUnitarioDetalle.text =
+                                  _selectedPrecio.toString();
+                              _selectedMaxCantidad =
+                                  listadoDisponibilidadMobiliarios[
+                                      listadoMobiliarios.indexOf(newValue)];
                             });
                           },
                           items:
@@ -409,6 +434,49 @@ class _RenDetScreenState extends State<RenDetScreen> {
                               );
                             },
                           ).toList(),
+                        ),
+                      ),
+                      space,
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        controller: cantidadDetalle,
+                        inputFormatters: [
+                          FilteringTextInputFormatter
+                              .digitsOnly, // Asegura que solo se ingresen números
+                        ],
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingrese una cantidad';
+                          }
+                          final cantidad = int.tryParse(value);
+                          if (cantidad == null) {
+                            return 'Por favor ingrese un número entero';
+                          }
+                          if (cantidad < 1) {
+                            return 'La cantidad mínima es 1';
+                          }
+                          if (_selectedMaxCantidad != null &&
+                              cantidad > _selectedMaxCantidad!) {
+                            return 'La cantidad máxima es $_selectedMaxCantidad';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          labelText: "Cantidad",
+                          hintText: "Maxima Cantidad = $_selectedMaxCantidad",
+                        ),
+                      ),
+                      space,
+                      AbsorbPointer(
+                        absorbing: true,
+                        child: InputField(
+                          title: "Precio Unitario",
+                          hint: _selectedPrecio != null
+                              ? _selectedPrecio.toString()
+                              : "",
+                          controller: precioUnitarioDetalle,
+                          keyboardType: TextInputType.number,
                         ),
                       ),
                       space,

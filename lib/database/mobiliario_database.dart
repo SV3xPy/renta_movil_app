@@ -259,11 +259,37 @@ class MobiliarioDatabase {
   //CRUD RentaDetalle
   Future<int> insertarRentaDetalle(Map<String, dynamic> data) async {
     var conexion = await database;
+    //PRIMERO ACTUALIZAMOS EL VALOR DE LA RENTA
+    int idRenta = data['idRenta'];
+    int cantidadDetalle = data['cantidadDetalle'];
+    double precioUnitario = data['precioUnitarioDetalle'];
+    double valorASumar = cantidadDetalle * precioUnitario;
+    await conexion.rawQuery('''
+    UPDATE Renta
+    SET montoRenta = montoRenta + ?
+    WHERE idRenta = ?;
+  ''', [valorASumar, idRenta]);
     return conexion.insert('RentaDetalle', data);
   }
 
   Future<int> eliminarRentaDetalle(Map<String, dynamic> data) async {
     var conexion = await database;
+    int idRenta = data['idRenta'];
+    int idMobiliario = data['idMobiliario'];
+    List<Map<String, dynamic>> detalles = await conexion.query(
+      'RentaDetalle',
+      where: 'idRenta = ? AND idMobiliario = ?',
+      whereArgs: [idRenta, idMobiliario],
+    );
+    if (detalles.isNotEmpty) {
+      double valorARestar =
+          detalles[0]['cantidadDetalle'] * detalles[0]['precioUnitarioDetalle'];
+      await conexion.rawQuery('''
+      UPDATE Renta
+      SET montoRenta = montoRenta - ?
+      WHERE idRenta = ?;
+    ''', [valorARestar, idRenta]);
+    }
     return conexion.delete('RentaDetalle',
         where: 'idRenta = ? AND idMobiliario= ?',
         whereArgs: [data['idRenta'], data['idMobiliario']]);
@@ -276,23 +302,21 @@ class MobiliarioDatabase {
         .map((renDetalle) => RentaDetalleModel.fromMap(renDetalle))
         .toList();
   }
-    Future<List<RentaDetalleNombreModel>> consultarRentaDetallePorID(int id) async {
+
+  Future<List<RentaDetalleNombreModel>> consultarRentaDetallePorID(
+      int id) async {
     var conexion = await database;
     var renDetalles = await conexion.rawQuery('''
-    SELECT RentaDetalle.idMobiliario, Mobiliario.nombreMobiliario, RentaDetalle.cantidadDetalle,RentaDetalle.precioUnitarioDetalle 
+    SELECT RentaDetalle.idMobiliario,Mobiliario.nombreMobiliario, RentaDetalle.cantidadDetalle,RentaDetalle.precioUnitarioDetalle 
     FROM RentaDetalle
-    INNER JOIN Renta ON RentaDetalle.idRenta = Mobiliario.idMobiliario
+    INNER JOIN Mobiliario ON RentaDetalle.idMobiliario = Mobiliario.idMobiliario
     WHERE RentaDetalle.idRenta = ?
   ''', [id]);
-  //NECESITO HACER OTRO MODELO
+    //NECESITO HACER OTRO MODELO
     return renDetalles
         .map((renDetalle) => RentaDetalleNombreModel.fromMap(renDetalle))
         .toList();
   }
-  /*
-  cantidadDetalle INTEGER,
-          precioUnitarioDetalle REAL,
-  */
 
   Future<int> actualizaRentaDetalle(
       Map<String, dynamic> data, Map<String, dynamic> nuevoData) async {

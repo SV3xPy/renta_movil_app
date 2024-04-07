@@ -149,6 +149,7 @@ class _MobCatScreenState extends State<MobCatScreen> {
                     }).then(
                       (value) {
                         if (value > 0) {
+                          Navigator.pop(context);
                           ArtSweetAlert.show(
                             context: context,
                             artDialogArgs: ArtDialogArgs(
