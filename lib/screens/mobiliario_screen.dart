@@ -130,7 +130,8 @@ class _MobiliarioScreenState extends State<MobiliarioScreen> {
               _bottomSheetButton(
                 label: "Administrar categorías",
                 onTap: () {
-                  Navigator.pushNamed(context, "/mobiliarioCategoria",arguments: mobiliario.idMobiliario);
+                  Navigator.pushNamed(context, "/mobiliarioCategoria",
+                      arguments: mobiliario.idMobiliario);
                 },
                 clr: primaryClr,
                 icon: const Icon(Icons.edit),

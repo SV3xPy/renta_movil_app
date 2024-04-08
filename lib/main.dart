@@ -12,9 +12,11 @@ import 'package:renta_movil_app/screens/splash_screen.dart';
 import 'package:renta_movil_app/screens/status_screen.dart';
 import 'package:renta_movil_app/services/theme_services.dart';
 import 'package:renta_movil_app/settings/theme.dart';
+import 'package:renta_movil_app/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotifyHelper().initNotifications();
   initializeDateFormatting('es_MX', null);
   await GetStorage.init();
   runApp(const MyApp());

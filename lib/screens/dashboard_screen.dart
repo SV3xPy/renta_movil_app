@@ -8,6 +8,7 @@ import 'package:renta_movil_app/database/mobiliario_database.dart';
 import 'package:renta_movil_app/models/mobiliario_model.dart';
 import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/screens/menu_lateral.dart';
+import 'package:renta_movil_app/services/notification_service.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/add_rent_button.dart';
 import 'package:renta_movil_app/widgets/renta_tile.dart';
@@ -25,11 +26,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   MobiliarioDatabase? mobiliarioDB;
+  //var notifyHelper;
 
   @override
   void initState() {
     super.initState();
     mobiliarioDB = MobiliarioDatabase();
+    // notifyHelper = NotifyHelper();
+    // notifyHelper.initializeNotification();
   }
 
   Future<List<RentaModel>> _fetchRentas() async {
@@ -439,7 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Container(
           padding: const EdgeInsets.only(top: 4),
           height: MediaQuery.of(context).size.height *
-              0.42, //MediaQuery.of(context).size.height * 0.32,
+              0.50, //MediaQuery.of(context).size.height * 0.32,
           width: MediaQuery.of(context).size.width,
           color: Get.isDarkMode ? darkGreyClr : Colors.white,
           child: Column(
@@ -463,6 +467,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
                 clr: primaryClr,
                 icon: const Icon(Icons.edit),
+              ),
+              _bottomSheetButton(
+                label: "Establecer recordatorio.",
+                onTap: () {
+                  // NotifyHelper().showNotification(
+                  //     title: renta.nombreRenta!,
+                  //     body: "Esto es una notificación.");
+                  NotifyHelper().scheduledNotification(
+                    title: renta.nombreRenta!,
+                    body: "Esta renta está próxima.",
+                    date: renta.fechaInicioRenta!,
+                    notifID: renta.idRenta!,
+                  );
+                },
+                clr: primaryClr,
+                icon: const Icon(Icons.notifications),
               ),
               _bottomSheetButton(
                 label: "Actualizar",
@@ -582,6 +602,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       elevation: 0,
       backgroundColor: context.theme.colorScheme.background,
       title: const Text('Dashboard'),
+      // actions: [
+      //   IconButton(
+      //       onPressed: () {
+
+      //         // NotifyHelper.showNotification(
+      //         //     title: "Prueba de notificación",
+      //         //     body: "Esto es una notificación");
+      //       },
+      //       icon: Icon(Icons.notifications))
+      // ],
     );
   }
 }
