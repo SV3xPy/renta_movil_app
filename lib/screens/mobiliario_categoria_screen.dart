@@ -8,6 +8,7 @@ import 'package:renta_movil_app/screens/app_value_notifier.dart';
 import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
 import 'package:renta_movil_app/widgets/mobiliario_categoria_title.dart';
+import 'package:badges/badges.dart' as badges;
 
 class MobCatScreen extends StatefulWidget {
   const MobCatScreen({super.key});
@@ -99,8 +100,6 @@ class _MobCatScreenState extends State<MobCatScreen> {
   }
 
   _showOptions(context, CategoriaModel mobcat, int? mobId) {
-    print(int.parse(mobcat.idCategoria.toString()));
-    print(mobId);
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -257,95 +256,99 @@ class _MobCatScreenState extends State<MobCatScreen> {
       height: 10,
     );
 
-    final btnAgregar = ElevatedButton.icon(
-      onPressed: () {
-        if (mobcat == null) {
-          mobiliarioDB!.insertarMobiliarioCategoria(
-            {
-              "idMobiliario": mobId,
-              "idCategoria": selectedCategoriaId,
-            },
-          ).then(
-            (value) {
-              Navigator.pop(context);
-              String msg = "";
-              if (value != null && value is int) {
-                if (value > 0) {
-                  AppValueNotifier.banMobiliarios.value =
-                      !AppValueNotifier.banMobiliarios.value;
-                  msg = "Mobiliario Insertado!";
-                } else {
-                  msg = "Ocurrió un error :(";
-                }
-              } else {
-                msg =
-                    "Ocurrió un error al procesar la respuesta de la base de datos.";
-              }
-              var snackbar = SnackBar(content: Text(msg));
-              ScaffoldMessenger.of(context).showSnackBar(snackbar);
-            },
-          ).catchError((error) {
-            Navigator.pop(context);
-            var snackbar = const SnackBar(
-                content:
-                    Text("Ocurrió un error al insertar en la base de datos."));
-            ScaffoldMessenger.of(context).showSnackBar(snackbar);
-          });
-        } else {
-          if (int.parse(mobcat.idCategoria.toString()) == selectedCategoriaId) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-            ArtSweetAlert.show(
-              context: context,
-              artDialogArgs: ArtDialogArgs(
-                type: ArtSweetAlertType.info,
-                title: "No es necesario actualizar, valores iguales.",
-              ),
-            );
-          } else {
-            mobiliarioDB!.actualizarMobiliarioCategoria({
-              //Primero los datos anteriores
-              "idMobiliario": mobId,
-              "idCategoria": int.parse(mobcat.idCategoria.toString()),
-            }, {
-              //Y lo valores nuevos
-              "idMobiliario": mobId,
-              "idCategoria": selectedCategoriaId
-            }).then(
+    final btnAgregar = badges.Badge(
+      badgeContent: Text('25'),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          if (mobcat == null) {
+            mobiliarioDB!.insertarMobiliarioCategoria(
+              {
+                "idMobiliario": mobId,
+                "idCategoria": selectedCategoriaId,
+              },
+            ).then(
               (value) {
                 Navigator.pop(context);
-                Navigator.pop(context);
-                //String msg = "";
-                if (value > 0) {
-                  AppValueNotifier.banMobiliarios.value =
-                      !AppValueNotifier.banMobiliarios.value;
-                  ArtSweetAlert.show(
-                    context: context,
-                    artDialogArgs: ArtDialogArgs(
-                      type: ArtSweetAlertType.success,
-                      title: "¡Mobiliario Actualizado!",
-                    ),
-                  );
-                  // msg = "Mobiliario actualizado!";
+                String msg = "";
+                if (value != null && value is int) {
+                  if (value > 0) {
+                    AppValueNotifier.banMobiliarios.value =
+                        !AppValueNotifier.banMobiliarios.value;
+                    msg = "Mobiliario Insertado!";
+                  } else {
+                    msg = "Ocurrió un error :(";
+                  }
                 } else {
-                  ArtSweetAlert.show(
-                    context: context,
-                    artDialogArgs: ArtDialogArgs(
-                      type: ArtSweetAlertType.warning,
-                      title: "Ocurrió un error.",
-                    ),
-                  );
+                  msg =
+                      "Ocurrió un error al procesar la respuesta de la base de datos.";
                 }
+                var snackbar = SnackBar(content: Text(msg));
+                ScaffoldMessenger.of(context).showSnackBar(snackbar);
               },
-            );
+            ).catchError((error) {
+              Navigator.pop(context);
+              var snackbar = const SnackBar(
+                  content: Text(
+                      "Ocurrió un error al insertar en la base de datos."));
+              ScaffoldMessenger.of(context).showSnackBar(snackbar);
+            });
+          } else {
+            if (int.parse(mobcat.idCategoria.toString()) ==
+                selectedCategoriaId) {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              ArtSweetAlert.show(
+                context: context,
+                artDialogArgs: ArtDialogArgs(
+                  type: ArtSweetAlertType.info,
+                  title: "No es necesario actualizar, valores iguales.",
+                ),
+              );
+            } else {
+              mobiliarioDB!.actualizarMobiliarioCategoria({
+                //Primero los datos anteriores
+                "idMobiliario": mobId,
+                "idCategoria": int.parse(mobcat.idCategoria.toString()),
+              }, {
+                //Y lo valores nuevos
+                "idMobiliario": mobId,
+                "idCategoria": selectedCategoriaId
+              }).then(
+                (value) {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  //String msg = "";
+                  if (value > 0) {
+                    AppValueNotifier.banMobiliarios.value =
+                        !AppValueNotifier.banMobiliarios.value;
+                    ArtSweetAlert.show(
+                      context: context,
+                      artDialogArgs: ArtDialogArgs(
+                        type: ArtSweetAlertType.success,
+                        title: "¡Mobiliario Actualizado!",
+                      ),
+                    );
+                    // msg = "Mobiliario actualizado!";
+                  } else {
+                    ArtSweetAlert.show(
+                      context: context,
+                      artDialogArgs: ArtDialogArgs(
+                        type: ArtSweetAlertType.warning,
+                        title: "Ocurrió un error.",
+                      ),
+                    );
+                  }
+                },
+              );
+            }
           }
-        }
-      },
-      icon: const Icon(Icons.save),
-      label: const Text('Guardar'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        //foregroundColor: Theme.of(context).colorScheme.secondary,
+        },
+        icon: const Icon(Icons.save),
+        label: const Text('Guardar'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.onPrimary,
+          //foregroundColor: Theme.of(context).colorScheme.secondary,
+        ),
       ),
     );
 
@@ -394,8 +397,6 @@ class _MobCatScreenState extends State<MobCatScreen> {
                                   .firstWhere((categoria) =>
                                       categoria.nombreCategoria == newValue)
                                   .idCategoria;
-                              print(selectedCategoriaId);
-                              print(_selectedString);
                             });
                           },
                           items:

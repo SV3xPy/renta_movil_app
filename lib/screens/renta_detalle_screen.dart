@@ -9,6 +9,7 @@ import 'package:renta_movil_app/settings/theme.dart';
 import 'package:renta_movil_app/widgets/input_field.dart';
 import 'package:flutter/services.dart';
 import 'package:renta_movil_app/widgets/renta_detalle_title.dart';
+import 'package:badges/badges.dart' as badges;
 
 class RenDetScreen extends StatefulWidget {
   const RenDetScreen({super.key});
@@ -31,6 +32,7 @@ class _RenDetScreenState extends State<RenDetScreen> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     int? rentaId;
     String? nombreRenta;
+    final badgeValueNotifier = ValueNotifier<int>(0);
 
     if (args != null) {
       rentaId = args['id'];
@@ -49,11 +51,25 @@ class _RenDetScreenState extends State<RenDetScreen> {
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              showModal(context, null, rentaId);
-            },
-            icon: const Icon(Icons.add),
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0, top: 10.0),
+            child: ValueListenableBuilder(
+              valueListenable: badgeValueNotifier,
+              builder: (context, int value, _) {
+                return badges.Badge(
+                  badgeContent: Text(value.toString()),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: IconButton(
+                      onPressed: () {
+                        showModal(context, null, rentaId);
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -71,6 +87,11 @@ class _RenDetScreenState extends State<RenDetScreen> {
                 );
               } else {
                 if (snapshot.hasData) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    int sumatoria = snapshot.data!
+                        .fold(0, (sum, item) => sum + item.cantidadDetalle!);
+                    badgeValueNotifier.value = sumatoria;
+                  });
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
@@ -268,6 +289,11 @@ class _RenDetScreenState extends State<RenDetScreen> {
       _selectedMaxCantidad = listadoDisponibilidadMobiliarios.first;
     }
     if (detalles != null) {
+      _selectedString = detalles.nombreMobiliario.toString();
+      _selectedMobiliarioId = int.parse(detalles.idMobiliario.toString());
+      int index = mobiliarios.indexWhere(
+          (mobiliario) => mobiliario.idMobiliario == _selectedMobiliarioId);
+      _selectedMaxCantidad = listadoDisponibilidadMobiliarios[index];
       idRenDetMob.text = detalles.idMobiliario.toString();
       cantidadDetalle.text = detalles.cantidadDetalle.toString();
       precioUnitarioDetalle.text = detalles.precioUnitarioDetalle.toString();
@@ -279,12 +305,14 @@ class _RenDetScreenState extends State<RenDetScreen> {
     final btnAgregar = ElevatedButton.icon(
       onPressed: () {
         if (detalles == null) {
+          print(renId);
+          print(_selectedMobiliarioId);
           mobiliarioDB!.insertarRentaDetalle(
             {
               "idRenta": renId,
               "idMobiliario": _selectedMobiliarioId,
               "cantidadDetalle": int.parse(cantidadDetalle.text),
-              "precioUnitarioDetalle": double.parse(precioUnitarioDetalle.text)
+              "precioUnitarioDetalle": _selectedPrecio
             },
           ).then(
             (value) {
@@ -329,39 +357,55 @@ class _RenDetScreenState extends State<RenDetScreen> {
               ),
             );
           } else {
-            mobiliarioDB!.actualizaRentaDetalle({
-              "idRenta": renId,
-              "idMobiliario": int.parse(detalles.idMobiliario.toString())
-            }, {
-              "idRenta": renId,
-              "idMobiliario": _selectedMobiliarioId,
-              "cantidadDetalle": int.parse(cantidadDetalle.text),
-              "precioUnitarioDetalle": double.parse(precioUnitarioDetalle.text),
-            }).then(
-              (value) {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                if (value > 0) {
-                  AppValueNotifier.banRentas.value =
-                      !AppValueNotifier.banRentas.value;
-                  ArtSweetAlert.show(
-                    context: context,
-                    artDialogArgs: ArtDialogArgs(
-                      type: ArtSweetAlertType.success,
-                      title: "¡Detalle de renta Actualizado!",
-                    ),
-                  );
-                } else {
-                  ArtSweetAlert.show(
-                    context: context,
-                    artDialogArgs: ArtDialogArgs(
-                      type: ArtSweetAlertType.warning,
-                      title: "Ocurrió un error.",
-                    ),
-                  );
-                }
-              },
-            );
+            if (int.parse(detalles.idMobiliario.toString()) ==
+                    _selectedMobiliarioId &&
+                int.parse(detalles.cantidadDetalle.toString()) ==
+                    _selectedCantidad) {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              ArtSweetAlert.show(
+                context: context,
+                artDialogArgs: ArtDialogArgs(
+                  type: ArtSweetAlertType.info,
+                  title: "No es necesario actualizar, valores iguales.",
+                ),
+              );
+            } else {
+              mobiliarioDB!.actualizaRentaDetalle({
+                "idRenta": renId,
+                "idMobiliario": int.parse(detalles.idMobiliario.toString())
+              }, {
+                "idRenta": renId,
+                "idMobiliario": _selectedMobiliarioId,
+                "cantidadDetalle": int.parse(cantidadDetalle.text),
+                "precioUnitarioDetalle":
+                    double.parse(precioUnitarioDetalle.text),
+              }).then(
+                (value) {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  if (value > 0) {
+                    AppValueNotifier.banRentas.value =
+                        !AppValueNotifier.banRentas.value;
+                    ArtSweetAlert.show(
+                      context: context,
+                      artDialogArgs: ArtDialogArgs(
+                        type: ArtSweetAlertType.success,
+                        title: "¡Detalle de renta Actualizado!",
+                      ),
+                    );
+                  } else {
+                    ArtSweetAlert.show(
+                      context: context,
+                      artDialogArgs: ArtDialogArgs(
+                        type: ArtSweetAlertType.warning,
+                        title: "Ocurrió un error.",
+                      ),
+                    );
+                  }
+                },
+              );
+            }
           }
         }
       },
@@ -375,13 +419,13 @@ class _RenDetScreenState extends State<RenDetScreen> {
       isScrollControlled: true,
       context: context,
       builder: (context) => DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.66,
-          minChildSize: 0.66,
-          maxChildSize: 1,
-          builder: (BuildContext context, ScrollController scrollController) {
-            return StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
+        expand: false,
+        initialChildSize: 0.47,
+        minChildSize: 0.47,
+        maxChildSize: 1,
+        builder: (BuildContext context, ScrollController scrollController) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
               return SingleChildScrollView(
                 controller: scrollController,
                 child: Padding(
@@ -485,8 +529,10 @@ class _RenDetScreenState extends State<RenDetScreen> {
                   ),
                 ),
               );
-            });
-          }),
+            },
+          );
+        },
+      ),
     );
   }
 }
